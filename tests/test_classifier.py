@@ -70,6 +70,30 @@ def test_predict_ResNet50():
     assert preds == ['baboon', 'brassiere', 'lemon']
 
 
+def test_predict_MobileNet():
+    icc = ImageClassifierComparer()
+    model_name = 'MobileNet'
+    preds = []
+    path = os.path.join('tests', 'image', 'baboon.jpg')
+    icc.get_image_from_path(path, model_name)
+    X = icc.preprocess_image(model_name)
+    icc.preds = icc.model_dict[model_name].predict([X])
+    preds.append(icc.postprocess_result()[0][0][1])
+
+    path = os.path.join('tests', 'image', 'lena.jpg')
+    icc.get_image_from_path(path, model_name)
+    X = icc.preprocess_image(model_name)
+    icc.preds = icc.model_dict[model_name].predict([X])
+    preds.append(icc.postprocess_result()[0][0][1])
+
+    path = os.path.join('tests', 'image', 'fruits.jpg')
+    icc.get_image_from_path(path, model_name)
+    X = icc.preprocess_image(model_name)
+    icc.preds = icc.model_dict[model_name].predict([X])
+    preds.append(icc.postprocess_result()[0][0][1])
+    assert preds == ['baboon', 'sombrero', 'lemon']
+
+
 def test_predict_InceptionV3():
     icc = ImageClassifierComparer()
     model_name = 'InceptionV3'
@@ -122,5 +146,5 @@ def test_compare():
     icc = ImageClassifierComparer()
     model_name = 'EfficientNetB0'
     path = os.path.join('tests', 'image', 'baboon.jpg')
-    icc.compare(path)
-    assert icc.post_processed_preds_dict[model_name][0][0][1] == 'baboon'
+    result_dict = icc.compare(path)
+    assert result_dict[model_name]['preds'][0][0][1] == 'baboon'
