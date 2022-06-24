@@ -1,10 +1,6 @@
 from pprint import pprint
 
-from keras.applications.imagenet_utils import decode_predictions, preprocess_input
-from keras.applications.vgg16 import VGG16
-from keras.applications.resnet import ResNet50
-from keras.applications.inception_v3 import InceptionV3
-from keras.applications.efficientnet import EfficientNetB0
+from keras.applications import vgg16, resnet, inception_v3, efficientnet, imagenet_utils
 from keras import utils
 import numpy as np
 
@@ -12,10 +8,16 @@ import numpy as np
 class ImageClassifierComparer:
     def __init__(self):
         self.model_dict = {
-            'VGG16': VGG16(weights='imagenet'),
-            'ResNet50': ResNet50(weights='imagenet'),
-            'InceptionV3': InceptionV3(weights='imagenet'),
-            'EfficientNetB0': EfficientNetB0(weights='imagenet')
+            'VGG16': vgg16.VGG16(weights='imagenet'),
+            'ResNet50': resnet.ResNet50(weights='imagenet'),
+            'InceptionV3': inception_v3.InceptionV3(weights='imagenet'),
+            'EfficientNetB0': efficientnet.EfficientNetB0(weights='imagenet')
+        }
+        self.preprocessor_dict = {
+            'VGG16': vgg16.preprocess_input,
+            'ResNet50': resnet.preprocess_input,
+            'InceptionV3': inception_v3.preprocess_input,
+            'EfficientNetB0': efficientnet.preprocess_input
         }
         self.post_processed_preds_dict = {}
 
@@ -27,7 +29,7 @@ class ImageClassifierComparer:
     def predict(self, img_path, model_name):
         self.get_image_from_path(img_path, model_name)
 
-        X = self.preprocess_image()
+        X = self.preprocess_image(model_name)
         self.preds = self.model_dict[model_name].predict([X])
         return self.postprocess_result()
 
@@ -35,11 +37,11 @@ class ImageClassifierComparer:
         self.img = utils.load_img(
             img_path, target_size=self.model_dict[model_name].input_shape[1:3])
 
-    def preprocess_image(self):
+    def preprocess_image(self, model_name):
         x = utils.img_to_array(self.img)
         x = np.expand_dims(x, axis=0)
-        x = preprocess_input(x)
+        x = self.preprocessor_dict[model_name](x)
         return x
 
     def postprocess_result(self):
-        return decode_predictions(self.preds, top=10)
+        return imagenet_utils.decode_predictions(self.preds, top=10)
